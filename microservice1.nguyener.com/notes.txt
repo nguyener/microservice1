@@ -1,0 +1,56 @@
+/**************************************************************
+ * cqlsh
+ *************************************************************/
+INSERT INTO templates (template_id, template_name, template_hash, commit, files) VALUES (now(), 'template_2', '3e8bc28f34a4a924657fac48ecfb04e6d3996468', {committer:'nguyener', commit_date:'2015-05-12 16:14:01.286562026 -0700 PDT', commit_message:'new template', commit_action:'Create template template_2 (3e8bc28f34a4a924657fac48ecfb04e6d3996468)'}, {{file_name:'file_3', file_content:'abc'},{file_name:'file_4', file_content:'abc'}})
+
+
+
+/************************************************************
+ * curl commands
+ ***********************************************************/
+//create a template with files
+curl -H "Content-Type: application/json" -X POST -d '{"template_name":"template_1", "commit_message":"new template", "files":[{"file_name":"file_1", "file_content":"abc"},{"file_name":"file_2","file_content":"edf"}]}'  http://127.0.0.1:8080/templates
+
+//add a file to existing template
+curl -H "Content-Type: application/json" -X POST -d '{"file_name":"file_1", "file_content":"abc"}'  http://127.0.0.1:8080/templates/xxx/files
+
+
+//get all templates
+curl -i http://127.0.0.1:8080/templates
+
+
+
+//get template files
+curl -i curl -i http://127.0.0.1:8080/template_files/7b176902e1dcf6635f62c38bb65c6152568a43b6
+//create template file (add file to existing template
+curl -H "Content-Type: application/json" -X POST -d '{"files":[{"file_name":"file_4", "file_content":"file 4 content"}]}'  http://127.0.0.1:8080/template_files/7b176902e1dcf6635f62c38bb65c6152568a43b6
+//delete template file
+
+
+
+
+
+
+
+
+
+
+/************************************************************
+ * SCHEMA
+ ***********************************************************/
+CREATE TYPE file(file_name text, file_content text);
+CREATE TYPE commit_info(committer text, commit_date text, commit_message text, commit_action text);
+CREATE TYPE release_info(release_role text, firmware text)
+create table templates (template_id uuid primary key,template_hash text, template_name text, commit_info frozen<commit_info>, release_info frozen<release_info>, files set<frozen<file>>);
+create index templates_template_hash on templates(template_hash);
+
+
+
+
+create table devices (device_name text primary key, template_name text, template_hash text, release_info frozen<release_info>);
+
+/***************************************************************************
+ * docker
+**************************************************************************/
+
+sudo docker run -e "DB_IP=10.120.112.76" -it -p 8080:8080 nguyener/factorytools_2 /src/factorytools.microsoft.com/factorytools/factorytools-server
